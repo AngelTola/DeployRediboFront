@@ -55,6 +55,23 @@ export default function PanelComentarios({ mostrar, onClose, comentarios, marca,
       return { conteo, porcentajes };
     })();
     
+    useEffect(() => {
+      let mounted = false
+      if (typeof window !== 'undefined') mounted = true
+    
+      if (!mounted) return
+    
+      if (mostrar) {
+        document.body.style.overflow = 'hidden'
+      } else {
+        document.body.style.overflow = ''
+      }
+    
+      return () => {
+        document.body.style.overflow = ''
+      }
+    }, [mostrar])
+    
 
     useEffect(() => {
       const observers: ResizeObserver[] = [];

@@ -1,5 +1,7 @@
 'use client';
 
+import Image from 'next/image';
+
 export default function NavbarDetalle() {
   return (
     <div className="px-6 py-4 border-b border-[rgba(0,0,0,0.05)] bg-white flex justify-between items-center">
@@ -8,7 +10,7 @@ export default function NavbarDetalle() {
         onClick={() => {}}
         className="p-1 rounded-full hover:opacity-80 transition"
       >
-        <img
+        <Image
           src="/imagenesIconos/image.png"
           alt="Icono de perfil"
           className="w-7 h-7 cursor-pointer"
