@@ -77,3 +77,11 @@ export default function InfoHost({ propietario, marca, modelo }: Props) {
     </div>
   );
 }
+
+
+
+
+
+
+
+

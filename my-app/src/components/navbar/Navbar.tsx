@@ -5,20 +5,17 @@ export default function Navbar() {
   const [activeBtn, setActiveBtn] = useState(0);
   const [isWideScreen, setIsWideScreen] = useState(true);
   
-  // Función para manejar el cambio de tamaño de la ventana
+  
   useEffect(() => {
     const handleResize = () => {
-      // Si el ancho es menor a 1333px, cambiamos el layout
+      
       setIsWideScreen(window.innerWidth >= 1333);
     };
     
-    // Verificar el tamaño inicial
     handleResize();
     
-    // Agregar listener para cambios de tamaño
     window.addEventListener('resize', handleResize);
     
-    // Limpiar listener al desmontar
     return () => {
       window.removeEventListener('resize', handleResize);
     };
