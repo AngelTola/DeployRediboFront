@@ -32,14 +32,6 @@ export default function DetalleCocheCliente({ auto }: Props) {
         });
     });
   }, [auto.id]);
-  const comentariosValidos = comentarios.filter(
-    (c) => c.calificacion > 0 && c.contenido?.trim() !== ""
-  );
-  const promedio =
-    comentariosValidos.length > 0
-      ? comentariosValidos.reduce((acc, c) => acc + c.calificacion, 0) /
-      comentariosValidos.length
-      : 0;
   return (
     <>
       <Navbar />
@@ -78,15 +70,15 @@ export default function DetalleCocheCliente({ auto }: Props) {
                   <span className="font-bold text-lg text-[#11295B]">
                     Calificación
                   </span>
-                  <span className="text-lg text-black font-medium">
-                    {promedio.toFixed(1)}
-                  </span>
-                  <div className="scale-150">
-                    <Estrellas
-                      promedio={
-                        auto.promedioCalificacion ?? 0
-                      }
-                    />
+                  <div className="flex items-center justify-center mt-8">
+                    <div className="flex items-center gap-8">
+                      <span className="bg-[#11295B] text-white text-base font-bold px-3 py-1 rounded-md min-w-[48px] text-center">
+                        {(auto.promedioCalificacion ?? 0).toFixed(1)}
+                      </span>
+                      <div className="scale-150">
+                        <Estrellas promedio={auto.promedioCalificacion ?? 0} />
+                      </div>
+                    </div>
                   </div>
                 </div>
 
