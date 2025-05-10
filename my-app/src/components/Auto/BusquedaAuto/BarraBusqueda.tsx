@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FiSearch } from 'react-icons/fi';
+import { IoClose } from 'react-icons/io5';
 
 interface BarraBusquedaProps {
   onBuscar: (valorBusqueda: string) => void;
@@ -11,9 +12,9 @@ interface BarraBusquedaProps {
 export default function BarraBusqueda({ onBuscar, totalResultados }: BarraBusquedaProps) {
   const [valorBusqueda, setValorBusqueda] = useState('');
   const [error, setError] = useState('');
-  const caracteresNoValidos = /[@#$%]/;
+  const [busquedaEjecutada, setBusquedaEjecutada] = useState(false); // Nueva bandera
+  const caracteresNoValidos = /[@#$%()^&*!_+?/:";',.<>{}\[\]:-]/;
 
-  // Cargar historial
   useEffect(() => {
     const historial = localStorage.getItem('historialBusquedas');
     if (!historial) {
@@ -23,21 +24,54 @@ export default function BarraBusqueda({ onBuscar, totalResultados }: BarraBusque
 
   const manejarCambio = (e: React.ChangeEvent<HTMLInputElement>) => {
     const valor = e.target.value;
-    
-    // Validación para no empezar con espacios o tener múltiples espacios
+
     if (valor.startsWith(' ') || valor.includes('  ')) {
       setError('');
       return;
     }
-    
-    if (valor.length > 50) return;
+
+    if (valor.length > 50) {
+      setError('El campo no puede exceder los 50 caracteres');
+      return;
+    }
 
     if (caracteresNoValidos.test(valor)) {
-      setError('No se permiten símbolos como @, #, $, %');
+      setError('No se permiten símbolos como @, #, $, %, (, ), ^, &, *, _, +, ?, /, ", :, ;, .');
     } else {
       setError('');
       setValorBusqueda(valor);
+      setBusquedaEjecutada(false); 
     }
+  };
+
+  const limpiarBusqueda = () => {
+    setValorBusqueda('');
+    setBusquedaEjecutada(false); // Reiniciar la bandera al limpiar
+    onBuscar('');
+  };
+
+  const ejecutarBusqueda = () => {
+    const valor = valorBusqueda.trim();
+
+    if (!valor) {
+      setBusquedaEjecutada(false);
+      onBuscar('');
+      return;
+    }
+
+    if (valor.startsWith(' ') || valor.includes('  ')) {
+      setError('Por favor corrija los espacios en la búsqueda');
+      return;
+    }
+
+    setError('');
+    setBusquedaEjecutada(true); // Marcar búsqueda como ejecutada
+    onBuscar(valor);
+    guardarEnHistorial(valor);
+  };
+
+  const manejarEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') ejecutarBusqueda();
   };
 
   const guardarEnHistorial = (valor: string) => {
@@ -48,51 +82,32 @@ export default function BarraBusqueda({ onBuscar, totalResultados }: BarraBusque
     }
   };
 
-  const ejecutarBusqueda = () => {
-    const valor = valorBusqueda.trim();
-
-    if (!valor) {
-      onBuscar('');
-      return;
-    }
-
-    // Validación adicional al ejecutar la búsqueda
-    if (valorBusqueda.startsWith(' ') || valorBusqueda.includes('  ')) {
-      setError('Por favor corrija los espacios en la búsqueda');
-      return;
-    }
-
-    const palabras = valor.split(/[\s-]+/);
-    if (palabras.length > 2) {
-      setError('Formato inválido. Use "Marca Modelo"');
-      return;
-    }
-
-    setError('');
-    onBuscar(valor);
-    guardarEnHistorial(valor);
-  };
-
-  const manejarEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') ejecutarBusqueda();
-  };
-
   return (
     <div className="w-full max-w-4xl mx-auto mb-4 sticky top-0 bg-white z-10 py-4">
-      {/* Barra de búsqueda con botón */}
       <div className="flex items-center gap-2 w-full">
         <div className="relative flex-1">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <FiSearch className="h-5 w-5 text-gray-400" />    {/**lupita */}
+          <div className="absolute inset-y-0 left-2 flex items-center">
+            <div className="bg-[#FCA311] rounded-full h-8 w-8 flex items-center justify-center">
+              <FiSearch className="h-5 w-5 text-white" />
+            </div>
           </div>
+
           <input
             type="text"
             placeholder="Buscar por marca o modelo..."
             value={valorBusqueda}
             onChange={manejarCambio}
             onKeyDown={manejarEnter}
-            className="block w-full pl-10 pr-3 py-3 border border-black rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FCA311] focus:border-transparent text-gray-700"
+            className="block w-full pl-10 pr-10 py-3 border border-black rounded-lg bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FCA311] focus:border-transparent text-gray-700"
           />
+          {valorBusqueda && (
+            <button
+              onClick={limpiarBusqueda}
+              className="absolute inset-y-0 right-3 flex items-center text-gray-400 hover:text-black"
+            >
+              <IoClose className="h-5 w-5" />
+            </button>
+          )}
         </div>
         <button
           onClick={ejecutarBusqueda}
@@ -102,14 +117,19 @@ export default function BarraBusqueda({ onBuscar, totalResultados }: BarraBusque
         </button>
       </div>
 
-      {/* Contador de resultados - izquierda debajo */}
       <div className="mt-2 text-left text-gray-600 text-lg pl-2 font-bold">
-        {totalResultados} 
-        <span className="text-lg">
-          {totalResultados === 1 ? ' coche disponible' : ' coches disponibles'}
-        </span>
+        {totalResultados > 0 ? (
+          <>
+            {totalResultados}{' '}
+            <span className="text-lg">
+              {totalResultados === 1 ? ' coche disponible' : ' coches disponibles'}
+            </span>
+          </>
+        ) : busquedaEjecutada && valorBusqueda ? ( 
+          <p className="text-red-500">No se encontraron resultados para su búsqueda.</p>
+        ) : null}
       </div>
-      
+
       {error && <p className="text-red-500 mt-2 text-sm pl-2">{error}</p>}
     </div>
   );
