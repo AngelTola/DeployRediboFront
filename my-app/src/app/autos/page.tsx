@@ -8,6 +8,7 @@ import BarraBusqueda from '@/components/Auto/BusquedaAuto/BarraBusqueda';
 import Link from 'next/link';
 import Estrellas from '@/components/Auto/Estrellas';
 import OrdenadoPor from '@/components/Auto/Ordenamiento/OrdenadoPor';
+import BarraReserva from '@/components/listaAutos/barraReserva';
 
 export default function AutosPage() {
   const [autos, setAutos] = useState<Auto[]>([]);
@@ -70,7 +71,7 @@ export default function AutosPage() {
     
     switch(opcion) {
       case 'Mejor calificación':
-        autosOrdenados.sort((a, b) => (b.promedioCalificacion ?? 0) - (a.promedioCalificacion ?? 0));
+        autosOrdenados.sort((a, b) => (b.calificacionPromedio ?? 0) - (a.calificacionPromedio ?? 0));
         break;
       case 'Modelo: a - z':
         autosOrdenados.sort((a, b) => a.modelo.localeCompare(b.modelo));
@@ -97,9 +98,44 @@ export default function AutosPage() {
     setAutosFiltrados(autosOrdenados);
   };
 
+
+
+  const handleDatesChange = (pickupDate: string, pickupTime: string, returnDate: string, returnTime: string) => {
+    try {
+      const pickupDateTime = new Date(`${pickupDate}T${pickupTime}:00`);
+      const returnDateTime = new Date(`${returnDate}T${returnTime}:00`);
+  
+      if (isNaN(pickupDateTime.getTime()) || isNaN(returnDateTime.getTime())) {
+        throw new Error('Las fechas u horas proporcionadas no son válidas.');
+      }
+  
+      if (pickupDateTime >= returnDateTime) {
+        alert('La fecha y hora de devolución deben ser posteriores a la de recogida.');
+        return;
+      }
+  
+      console.log('Fecha y hora de recogida:', pickupDateTime);
+      console.log('Fecha y hora de devolución:', returnDateTime);
+    } catch (error) {
+      if (error instanceof Error) {
+        alert(error.message);
+      } else {
+        alert('Ocurrió un error desconocido.');
+      }
+    }
+  };
+  
+  
+
   return (
     <>
       <div className="max-w-4xl mx-auto px-4 py-2">
+
+        {/* Barra de reserva */}
+      <div className="mb-4">
+        <BarraReserva onDatesChange={handleDatesChange} />
+      </div>
+
         {/* Barra de búsqueda */}
         <div className="mb-4">
           <BarraBusqueda 
@@ -117,7 +153,7 @@ export default function AutosPage() {
           <div className="grid grid-cols-1 gap-6 max-w-4xl mx-auto">
             {autosFiltrados.map((auto: Auto) => (
               <div
-                key={auto.id}
+                key={auto.idAuto}
                 className="bg-white rounded-lg p-4 shadow-md transition-transform duration-200 ease-in-out hover:translate-y-[-5px] hover:shadow-lg"
               >
                 <div className="flex flex-col md:flex-row gap-4">
@@ -144,10 +180,10 @@ export default function AutosPage() {
                     <div className="flex items-center justify-center mt-8">
                       <div className="flex items-center gap-8">
                         <span className="bg-[#11295B] text-white text-base font-bold px-3 py-1 rounded-md min-w-[48px] text-center">
-                          {(auto.promedioCalificacion ?? 0).toFixed(1)}
+                          {(auto.calificacionPromedio ?? 0).toFixed(1)}
                         </span>
                         <div className="scale-150">
-                          <Estrellas promedio={auto.promedioCalificacion ?? 0} />
+                          <Estrellas promedio={auto.calificacionPromedio ?? 0} />
                         </div>
                       </div>
                     </div>
@@ -168,7 +204,7 @@ export default function AutosPage() {
                             {
                               icon: '/imagenesIconos/usuario.png',
                               label: 'Capacidad',
-                              value: `${auto.capacidad} personas`,
+                              value: `${auto.asientos} personas`,
                             },
                             {
                               icon: '/imagenesIconos/cajaDeCambios.png',
@@ -248,7 +284,7 @@ export default function AutosPage() {
                         
                         <Link
                           className="inline-block px-4 py-2 bg-[#FCA311] text-white no-underline rounded-lg font-bold transition-colors duration-300 ease-in-out hover:bg-[#e4920b]"
-                          href={`/detalleCoche/${auto.id}`}
+                          href={`/detalleCoche/${auto.idAuto}`}
                           target="_blank"
                         >
                           Ver detalles

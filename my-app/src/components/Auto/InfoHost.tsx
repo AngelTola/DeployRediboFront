@@ -2,23 +2,20 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { Usuario } from '@/types/auto';
 
 interface Props {
-  propietario: {
-    nombre: string;
-    apellido: string;
-    telefono: string;
-  };
+  usuario: Usuario;
   marca: string;
   modelo: string;
 }
 
-export default function InfoHost({ propietario, marca, modelo }: Props) {
+export default function InfoHost({ usuario, marca, modelo }: Props) {
   const [error, setError] = useState(false);
 
   const handleContactClick = () => {
     try {
-      const link = `https://wa.me/591${propietario.telefono}?text=${encodeURIComponent(
+      const link = `https://wa.me/591${usuario.telefono}?text=${encodeURIComponent(
         `Hola, estoy interesado en tu vehículo ${marca}-${modelo} publicado en REDIBO.`
       )}`;   
       window.open(link, '_blank');
@@ -46,10 +43,10 @@ export default function InfoHost({ propietario, marca, modelo }: Props) {
       </div>
 
       <p className="text-center text-[#333] text-lg mb-2">
-        {propietario?.nombre} {propietario?.apellido}
+        {usuario?.nombre} {usuario?.apellido}
       </p>
 
-      {propietario?.telefono && (
+      {usuario?.telefono && (
         <div className="mt-2 text-sm text-[#11295b]">
           <div className="flex justify-between items-center">
             <p className="font-semibold">Contacto directo:</p>
@@ -77,11 +74,3 @@ export default function InfoHost({ propietario, marca, modelo }: Props) {
     </div>
   );
 }
-
-
-
-
-
-
-
-
