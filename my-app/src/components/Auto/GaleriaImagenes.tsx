@@ -3,7 +3,6 @@ import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import { Auto } from '@/types/auto';
 
-// Interfaz para el componente de imagen optimizada
 interface OptimizedGalleryImageProps {
   src: string;
   alt: string;
@@ -11,7 +10,6 @@ interface OptimizedGalleryImageProps {
   onLoad: () => void;
 }
 
-// Componente para manejar la carga de imágenes en la galería
 const OptimizedGalleryImage = ({ src, alt, isActive, onLoad }: OptimizedGalleryImageProps) => {
   const [isLoading, setIsLoading] = useState(true);
   
@@ -26,8 +24,8 @@ const OptimizedGalleryImage = ({ src, alt, isActive, onLoad }: OptimizedGalleryI
         src={src}
         alt={alt}
         fill
-        quality={isActive ? 90 : 60} // Mayor calidad para la imagen activa
-        priority={isActive} // Cargar con prioridad solo la imagen activa
+        quality={isActive ? 90 : 60}
+        priority={isActive}
         sizes="(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 70vw, 60vw"
         style={{ 
           objectFit: 'cover',
@@ -50,11 +48,9 @@ export default function GaleriaImagenes({ imagenes, marca, modelo }: Pick<Auto, 
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [preloadedImages, setPreloadedImages] = useState<string[]>([]);
   
-  // Gestionar las imágenes precargadas
   useEffect(() => {
     if (!imagenes || imagenes.length === 0) return;
     
-    // Precarga la imagen actual y la siguiente
     const imagesToPreload = [
       imagenes[imagenActual].direccionImagen, 
       imagenes[(imagenActual + 1) % imagenes.length].direccionImagen
@@ -69,7 +65,6 @@ export default function GaleriaImagenes({ imagenes, marca, modelo }: Pick<Auto, 
     setIsTransitioning(true);
     setImagenActual((prev) => (prev < (imagenes?.length ?? 0) - 1 ? prev + 1 : 0));
     
-    // Precarga la siguiente imagen
     if (imagenes.length > 2) {
       const nextIndex = (imagenActual + 2) % imagenes.length;
       setPreloadedImages(prev => [...new Set([...prev, imagenes[nextIndex].direccionImagen])]);
@@ -82,7 +77,6 @@ export default function GaleriaImagenes({ imagenes, marca, modelo }: Pick<Auto, 
     setIsTransitioning(true);
     setImagenActual((prev) => (prev > 0 ? prev - 1 : (imagenes?.length ?? 1) - 1));
     
-    // Precarga la imagen anterior
     if (imagenes.length > 2) {
       const prevIndex = imagenActual === 0 ? imagenes.length - 2 : (imagenActual - 2 + imagenes.length) % imagenes.length;
       setPreloadedImages(prev => [...new Set([...prev, imagenes[prevIndex].direccionImagen])]);
@@ -90,11 +84,9 @@ export default function GaleriaImagenes({ imagenes, marca, modelo }: Pick<Auto, 
   };
 
   const handleImageLoad = () => {
-    // Desbloquear la transición después de que la imagen se cargue
     setIsTransitioning(false);
   };
 
-  // Si no hay imágenes, mostrar un placeholder
   if (!imagenes || imagenes.length === 0) {
     return (
       <div className="relative mx-auto w-[100%] sm:w-full h-[200px] sm:h-[250px] md:h-[300px] lg:h-[350px] border border-black rounded-[20px] overflow-hidden bg-gray-200 flex items-center justify-center">
@@ -117,7 +109,6 @@ export default function GaleriaImagenes({ imagenes, marca, modelo }: Pick<Auto, 
 
       {/* Contenedor de imágenes */}
       <div className="relative w-full h-full">
-        {/* Renderizamos todas las imágenes pero solo mostramos la activa */}
         {imagenes.map((imagen, index) => (
           <OptimizedGalleryImage
             key={imagen.idImagen}
@@ -139,7 +130,6 @@ export default function GaleriaImagenes({ imagenes, marca, modelo }: Pick<Auto, 
         {'>'}
       </button>
 
-      {/* Indicadores de posición */}
       {imagenes.length > 1 && (
         <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-50">
           {imagenes.map((_, index) => (
@@ -160,7 +150,6 @@ export default function GaleriaImagenes({ imagenes, marca, modelo }: Pick<Auto, 
         </div>
       )}
       
-      {/* Precargar imágenes fuera de la vista */}
       <div className="hidden">
         {preloadedImages.map((src, idx) => (
           <Image 

@@ -59,14 +59,8 @@ export default function AutosPage() {
   const [cargando, setCargando] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
   
-  // Estado para manejar la carga lazy de imágenes
   const [imagesToLoad, setImagesToLoad] = useState(8)
 
-  useEffect(() => {
-    // Puedes implementar aquí la pre-carga de datos si es necesario
-  }, [])
-
-  // Implementar IntersectionObserver para carga lazy adicional
   useEffect(() => {
     if (!autosFiltrados.length) return
     
@@ -74,7 +68,6 @@ export default function AutosPage() {
       (entries) => {
         const lastEntry = entries[0]
         if (lastEntry.isIntersecting && autosFiltrados.length > imagesToLoad) {
-          // Cargar más imágenes cuando el usuario llegue al final
           setImagesToLoad(prev => prev + 4)
         }
       },
@@ -106,7 +99,6 @@ export default function AutosPage() {
       setAutos(data)
       setAutosFiltrados(data)
       setBusquedaActiva(true)
-      // Resetear el contador de imágenes a cargar cuando hay nueva búsqueda
       setImagesToLoad(8)
     } catch (error) {
       console.error("Error al buscar autos disponibles:", error)
@@ -143,7 +135,6 @@ export default function AutosPage() {
     })
 
     setAutosFiltrados(ordenarResultados(filtrados, valor))
-    // Resetear el contador de imágenes a cargar cuando se filtran resultados
     setImagesToLoad(8)
   }
 
@@ -417,6 +408,7 @@ export default function AutosPage() {
                         <Link
                           className="inline-block px-4 py-2 bg-[#FCA311] text-white no-underline rounded-lg font-bold transition-colors duration-300 ease-in-out hover:bg-[#e4920b]"
                           href={`/detalleCoche/${auto.idAuto}`}
+                          target="_blank"
                         >
                           Ver detalles
                         </Link>
