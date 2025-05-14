@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { getAutos, getAutosDisponiblesPorFecha } from "@/libs/api"
+import {getAutosDisponiblesPorFecha } from "@/libs/api"
 import type { Auto } from "@/types/auto"
 import Image from "next/image"
 import BarraBusqueda from "@/components/Auto/BusquedaAuto/BarraBusqueda"
@@ -19,22 +19,34 @@ export default function AutosPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    async function fetchData() {
-      try {
-        const { data } = await getAutos()
-        setAutos(data)
-        setAutosFiltrados(data)
-      } catch (err) {
-        console.error("Error al cargar autos:", err)
-        setError("Error al cargar los autos. Por favor, recarga la página.")
-      }
-    }
-    fetchData()
+    
   }, [])
 
+  const buscarAutosDisponibles = async (fechaInicio: string, fechaFin: string) => {
+    try {
+
+      const inicio = new Date(fechaInicio).toISOString().split("T")[0]
+      const fin = new Date(fechaFin).toISOString().split("T")[0]
+
+      console.log(`Buscando autos disponibles entre ${inicio} y ${fin}`)
+
+      setFechasReserva({ inicio: fechaInicio, fin: fechaFin })
+
+      const { data } = await getAutosDisponiblesPorFecha(inicio, fin)
+
+      setAutos(data)
+      setAutosFiltrados(data)
+      setBusquedaActiva(true)
+    } catch (error) {
+      console.error("Error al buscar autos disponibles:", error)
+      setError("Hubo un error al buscar autos disponibles. Por favor intente nuevamente.")
+    } finally {
+      setCargando(false)
+    }
+  }
+
   const filtrarAutos = (busqueda: string) => {
-    // Si hay una búsqueda por fechas activa, filtramos sobre los autos ya filtrados por disponibilidad
-    const autosBase = busquedaActiva ? autosFiltrados : autos
+    const autosBase = autos
 
     if (!busqueda.trim()) {
       setAutosFiltrados(autosBase)
@@ -109,43 +121,6 @@ export default function AutosPage() {
     setAutosFiltrados(autosOrdenados)
   }
 
-  const buscarAutosDisponibles = async (fechaInicio: string, fechaFin: string) => {
-    try {
-      setCargando(true)
-      setError(null)
-
-      // Formatear las fechas para asegurarnos de que estén en el formato correcto
-      const inicio = new Date(fechaInicio).toISOString().split("T")[0]
-      const fin = new Date(fechaFin).toISOString().split("T")[0]
-
-      console.log(`Buscando autos disponibles entre ${inicio} y ${fin}`)
-
-      // Guardar las fechas para referencia
-      setFechasReserva({ inicio: fechaInicio, fin: fechaFin })
-
-      // Llamar a la API para obtener autos disponibles
-      const { data } = await getAutosDisponiblesPorFecha(inicio, fin)
-
-      // Actualizar el estado
-      setAutosFiltrados(data)
-      setBusquedaActiva(true)
-    } catch (error) {
-      console.error("Error al buscar autos disponibles:", error)
-      setError("Hubo un error al buscar autos disponibles. Por favor intente nuevamente.")
-      // En caso de error, mantener la lista actual
-    } finally {
-      setCargando(false)
-    }
-  }
-
-  // Función para limpiar la búsqueda por disponibilidad
-  const limpiarBusquedaDisponibilidad = () => {
-    setBusquedaActiva(false)
-    setFechasReserva(null)
-    setAutosFiltrados(autos)
-    setError(null)
-  }
-
   return (
     <>
       <div className="max-w-4xl mx-auto px-4 py-2">
@@ -154,7 +129,6 @@ export default function AutosPage() {
           <BarraReserva onBuscarDisponibilidad={buscarAutosDisponibles} />
         </div>
 
-        {/* Indicador de error */}
         {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">{error}</div>}
 
         {/* Indicador de carga */}
@@ -165,8 +139,8 @@ export default function AutosPage() {
           </div>
         )}
 
-        {/* Indicador de búsqueda activa y botón para limpiar */}
-        {busquedaActiva && fechasReserva && !cargando && (
+        {/* Indicador de búsqueda activa*/}
+        {fechasReserva && !cargando && (
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center">
             <div>
               <p className="text-blue-800 font-medium">
@@ -174,9 +148,6 @@ export default function AutosPage() {
                 {new Date(fechasReserva.fin).toLocaleDateString()}
               </p>
             </div>
-            <button onClick={limpiarBusquedaDisponibilidad} className="text-blue-600 hover:text-blue-800 font-medium">
-              Limpiar filtro
-            </button>
           </div>
         )}
 
@@ -237,8 +208,56 @@ export default function AutosPage() {
                         {auto.marca} - {auto.modelo}
                       </h2>
 
-                      {/* Características */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-4 sm:gap-y-6 gap-x-4 lg:gap-x-30 mb-4">
+                      {/* Características - Versión móvil (2 columnas) */}
+                      <div className="grid grid-cols-2 gap-y-4 gap-x-2 mb-4 sm:hidden">
+                        {[
+                          {
+                            icon: "/imagenesIconos/usuario.png",
+                            label: "Capacidad",
+                            value: `${auto.asientos} personas`,
+                          },
+                          {
+                            icon: "/imagenesIconos/cajaDeCambios.png",
+                            label: "Transmisión",
+                            value: auto.transmision,
+                          },
+                          {
+                            icon: "/imagenesIconos/maleta.png",
+                            label: "Maletero",
+                            value: `${auto.capacidadMaletero} equipaje/s`,
+                          },
+                          {
+                            icon: "/imagenesIconos/velocimetro.png",
+                            label: "Kilometraje",
+                            value: `${auto.kilometraje} km`,
+                          },
+                          {
+                            icon: "/imagenesIconos/gasolinera.png",
+                            label: "Combustible",
+                            value: auto.combustible,
+                          },
+                        ].map(({ icon, label, value }, index) => (
+                          <div key={index} className="flex items-center gap-2">
+                            <Image
+                              src={icon || "/placeholder.svg"}
+                              alt={label}
+                              width={50}
+                              height={50}
+                              className="w-[30px] h-[30px]"
+                              unoptimized
+                            />
+                            <div className="flex flex-col">
+                              <span className="font-bold text-[14px] text-black whitespace-nowrap">
+                                {value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()}
+                              </span>
+                              <span className="text-[12px] text-[#292929]">{label}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Características - Versión original para tablets y desktop */}
+                      <div className="hidden sm:grid sm:grid-cols-2 lg:grid-cols-3 sm:gap-y-6 sm:gap-x-4 lg:gap-x-30 mb-4">
                         {/* Columna 1 */}
                         <div className="flex flex-col gap-5">
                           {[
@@ -337,7 +356,8 @@ export default function AutosPage() {
           </div>
         ) : (
           <p className="text-center text-gray-600 mt-10">
-            {cargando ? "Cargando autos..." : "No se encontraron resultados"}
+            {busquedaActiva ? 
+            (cargando ? "Cargando autos..." : "No se encontraron resultados") : "Ingrese las fechas que desea rentar"}
           </p>
         )}
       </div>

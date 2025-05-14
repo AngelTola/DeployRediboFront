@@ -1,17 +1,17 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect, useCallback } from "react"
 import { CalendarIcon, ClockIcon } from "@heroicons/react/24/outline"
 import DatePicker from "react-datepicker"
 import "react-datepicker/dist/react-datepicker.css"
-import { es } from "date-fns/locale"
 
-// Función para obtener la próxima hora completa
-const getNextHour = (currentTime: Date) => {
-  const nextHour = new Date(currentTime)
-  nextHour.setMinutes(0, 0, 0)
-  nextHour.setHours(nextHour.getHours() + 1)
-  return nextHour
+const getSiguienteHora = (currentTime: Date) => {
+  const siguienteHora = new Date(currentTime)
+  siguienteHora.setMinutes(0, 0, 0)
+  siguienteHora.setHours(siguienteHora.getHours() + 1)
+  return siguienteHora
 }
 
 interface BarraReservaProps {
@@ -26,23 +26,6 @@ const BarraReserva: React.FC<BarraReservaProps> = ({ onBuscarDisponibilidad }) =
   const [errorMessage, setErrorMessage] = useState<string>("")
   const [formValid, setFormValid] = useState<boolean>(false)
 
-  // Cargar datos guardados al iniciar
-  useEffect(() => {
-    const savedData = localStorage.getItem("reservaData")
-    if (savedData) {
-      try {
-        const data = JSON.parse(savedData)
-        if (data.pickupDate) setPickupDate(new Date(data.pickupDate))
-        if (data.pickupTime) setPickupTime(data.pickupTime)
-        if (data.returnDate) setReturnDate(new Date(data.returnDate))
-        if (data.returnTime) setReturnTime(data.returnTime)
-      } catch (error) {
-        console.error("Error al cargar datos guardados:", error)
-      }
-    }
-  }, [])
-
-  // Guardar datos cuando cambian
   useEffect(() => {
     if (pickupDate && pickupTime && returnDate && returnTime) {
       const dataToSave = {
@@ -109,7 +92,6 @@ const BarraReserva: React.FC<BarraReservaProps> = ({ onBuscarDisponibilidad }) =
     handleDatesChange()
   }, [handleDatesChange])
 
-  // Limpiar todos los campos cuando se selecciona una nueva fecha de recogida
   const handlePickupDateChange = (date: Date | null) => {
     setPickupDate(date)
 
@@ -120,41 +102,41 @@ const BarraReserva: React.FC<BarraReservaProps> = ({ onBuscarDisponibilidad }) =
     }
 
     if (date && new Date(date).toDateString() === new Date().toDateString()) {
-      const nextHour = getNextHour(new Date())
-      const nextHourStr = `${nextHour.getHours() < 10 ? "0" + nextHour.getHours() : nextHour.getHours()}:00`
-      setPickupTime(nextHourStr)
+      const siguienteHora = getSiguienteHora(new Date())
+      const siguienteHoraStr = `${siguienteHora.getHours() < 10 ? "0" + siguienteHora.getHours() : siguienteHora.getHours()}:00`
+      setPickupTime(siguienteHoraStr)
     }
   }
 
   const handleReturnDateChange = (date: Date | null) => {
     setReturnDate(date)
     if (pickupDate && date && pickupDate.toDateString() === date.toDateString()) {
-      const nextReturnHour = new Date(pickupDate)
-      nextReturnHour.setHours(nextReturnHour.getHours() + 1)
+      const siguienteHoraRetornar = new Date(pickupDate)
+      siguienteHoraRetornar.setHours(siguienteHoraRetornar.getHours() + 1)
       setReturnTime(
-        `${nextReturnHour.getHours() < 10 ? "0" + nextReturnHour.getHours() : nextReturnHour.getHours()}:00`,
+        `${siguienteHoraRetornar.getHours() < 10 ? "0" + siguienteHoraRetornar.getHours() : siguienteHoraRetornar.getHours()}:00`,
       )
     } else {
       setReturnTime("")
     }
   }
 
-  const generateTimeOptions = (pickupDate: Date | null) => {
+  const generarHoraOpciones = (pickupDate: Date | null) => {
     const times = []
-    let startHour = 0
+    let horaInicial = 0
     const currentHour = new Date().getHours()
 
     if (pickupDate && new Date(pickupDate).toDateString() === new Date().toDateString()) {
-      startHour = currentHour + 1
+      horaInicial = currentHour + 1
     } else {
-      startHour = 0
+      horaInicial = 0
     }
 
-    for (let i = startHour; i < 24; i++) {
-      const hour = i < 10 ? `0${i}:00` : `${i}:00`
+    for (let i = horaInicial; i < 24; i++) {
+      const hora = i < 10 ? `0${i}:00` : `${i}:00`
       times.push(
-        <option key={hour} value={hour}>
-          {hour}
+        <option key={hora} value={hora}>
+          {hora}
         </option>,
       )
     }
@@ -179,98 +161,89 @@ const BarraReserva: React.FC<BarraReservaProps> = ({ onBuscarDisponibilidad }) =
   }
 
   return (
-    <div>
-      <div className="flex flex-col md:flex-row items-center border rounded-lg p-2 bg-white shadow-md space-y-2 md:space-y-0 md:space-x-4">
-        {/* Fecha de recogida */}
-        <div className="flex items-center space-x-1">
-          <CalendarIcon className="h-[60px] w-[60px] text-gray-800" />
-          <div>
-            <label htmlFor="pickup-date" className="text-sm font-bold text-blue-950">
-              Fecha de recogida:
-            </label>
-            <DatePicker
-              selected={pickupDate}
-              onChange={handlePickupDateChange}
-              dateFormat="dd/MM/yyyy"
-              className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-28"
-              popperClassName="z-[9999]"
-              portalId="root-portal"
-              minDate={new Date()}
-              locale={es}
-            />
+    <div className="w-full">
+      <div className="flex flex-col border rounded-lg p-3 bg-white shadow-md gap-3">
+        {/* Contenedor principal con grid para pantallas pequeñas y flex para pantallas grandes */}
+        <div className="grid grid-cols-2 gap-x-0 gap-y-3 md:flex md:flex-row md:flex-wrap md:items-center md:gap-3">
+          {/* Fecha de recogida */}
+          <div className="flex items-center gap-1 w-full md:w-auto">
+            <CalendarIcon className="h-6 w-6 md:h-10 md:w-10 text-gray-800 shrink-0" />
+            <div className="flex flex-col">
+              <label className="w-36 text-sm font-bold text-blue-950">Fecha de recogida:</label>
+              <DatePicker
+                selected={pickupDate}
+                onChange={handlePickupDateChange}
+                dateFormat="dd/MM/yyyy"
+                className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-28"
+                popperClassName="z-[9999]"
+                portalId="root-portal"
+                minDate={new Date()}
+              />
+            </div>
+          </div>
+
+          {/* Hora de recogida */}
+          <div className="flex items-center gap-1 w-full md:w-auto">
+            <ClockIcon className="h-6 w-6 md:h-10 md:w-10 text-gray-800 shrink-0" />
+            <div className="flex flex-col">
+              <label className="w-36 text-sm font-bold text-blue-950">Hora de recogida:</label>
+              <select
+                value={pickupTime}
+                onChange={(e) => setPickupTime(e.target.value)}
+                className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-20"
+              >
+                <option value=""></option>
+                {generarHoraOpciones(pickupDate)}
+              </select>
+            </div>
+          </div>
+
+          {/* Fecha de devolución */}
+          <div className="flex items-center gap-1 w-full md:w-auto">
+            <CalendarIcon className="h-6 w-6 md:h-10 md:w-10 text-gray-800 shrink-0" />
+            <div className="flex flex-col">
+              <label className="w-36 text-sm font-bold text-blue-950">Fecha de devolución:</label>
+              <DatePicker
+                selected={returnDate}
+                onChange={handleReturnDateChange}
+                dateFormat="dd/MM/yyyy"
+                className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-28"
+                popperClassName="z-[9999]"
+                minDate={pickupDate || new Date()}
+              />
+            </div>
+          </div>
+
+          {/* Hora de devolución */}
+          <div className="flex items-center gap-1 w-full md:w-auto">
+            <ClockIcon className="h-6 w-6 md:h-10 md:w-10 text-gray-800 shrink-0" />
+            <div className="flex flex-col">
+              <label className="w-36 text-sm font-bold text-blue-950">Hora de devolución:</label>
+              <select
+                value={returnTime}
+                onChange={(e) => setReturnTime(e.target.value)}
+                className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-20"
+              >
+                <option value=""></option>
+                {generarHoraOpciones(pickupDate)}
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* Hora de recogida */}
-        <div className="flex items-center space-x-1">
-          <ClockIcon className="h-[60px] w-[60px] text-gray-800" />
-          <div>
-            <label htmlFor="pickup-time" className="text-sm font-bold text-blue-950">
-              Hora de recogida:
-            </label>
-            <select
-              id="pickup-time"
-              value={pickupTime}
-              onChange={(e) => setPickupTime(e.target.value)}
-              className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-20"
-            >
-              <option value=""></option>
-              {generateTimeOptions(pickupDate)}
-            </select>
-          </div>
+        {/* Botón alineado a la derecha */}
+        <div className="flex justify-end w-full">
+          <button
+            onClick={handleBuscar}
+            disabled={!formValid}
+            className="bg-[#FCA311] text-white px-4 py-2 rounded font-medium transition duration-200 hover:bg-blue-700 disabled:opacity-50"
+          >
+            Buscar
+          </button>
         </div>
-
-        {/* Fecha de devolución */}
-        <div className="flex items-center space-x-1">
-          <CalendarIcon className="h-[60px] w-[60px] text-gray-800" />
-          <div>
-            <label htmlFor="return-date" className="text-sm font-bold text-blue-950">
-              Fecha de devolución:
-            </label>
-            <DatePicker
-              selected={returnDate}
-              onChange={handleReturnDateChange}
-              dateFormat="dd/MM/yyyy"
-              className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-28"
-              popperClassName="z-[9999]"
-              minDate={pickupDate || new Date()}
-              locale={es}
-            />
-          </div>
-        </div>
-
-        {/* Hora de devolución */}
-        <div className="flex items-center space-x-1">
-          <ClockIcon className="h-[60px] w-[60px] text-gray-800" />
-          <div>
-            <label htmlFor="return-time" className="text-sm font-bold text-blue-950">
-              Hora de devolución:
-            </label>
-            <select
-              id="return-time"
-              value={returnTime}
-              onChange={(e) => setReturnTime(e.target.value)}
-              className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-20"
-            >
-              <option value=""></option>
-              {generateTimeOptions(pickupDate)}
-            </select>
-          </div>
-        </div>
-
-        {/* Botón de búsqueda */}
-        <button
-          onClick={handleBuscar}
-          disabled={!formValid}
-          className={`bg-[#FCA311] hover:bg-[#e4920b] text-white font-medium py-2 px-6 rounded-lg transition-colors duration-200 text-base h-full ${
-            !formValid ? "opacity-50 cursor-not-allowed" : ""
-          }`}
-        >
-          Buscar
-        </button>
       </div>
 
-      {errorMessage && <p className="text-red-600 mt-2 text-sm font-medium">{errorMessage}</p>}
+      {errorMessage && <p className="text-red-600 text-sm mt-2">{errorMessage}</p>}
     </div>
   )
 }
