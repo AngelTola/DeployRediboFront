@@ -16,14 +16,14 @@ export default function InfoHost({ usuario, marca, modelo }: Props) {
   const handleContactClick = () => {
     try {
       const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+      const numero = `591${usuario.telefono}`.replace(/\D/g, '');
   
-      const baseUrl = isMobile
-        ? 'https://wa.me'
-        : 'https://web.whatsapp.com/send';
+      const mensaje = `Hola, estoy interesado en tu vehículo ${marca}-${modelo} publicado en REDIBO.`;
+      const mensajeCodificado = encodeURIComponent(mensaje);
   
-      const link = `${baseUrl}?phone=591${usuario.telefono}&text=${encodeURIComponent(
-        `Hola, estoy interesado en tu vehículo ${marca}-${modelo} publicado en REDIBO.`
-      )}`;
+      const link = isMobile
+        ? `https://wa.me/${numero}?text=${mensajeCodificado}`
+        : `https://web.whatsapp.com/send?phone=${numero}&text=${mensajeCodificado}`;
   
       window.open(link, '_blank');
     } catch (err) {
