@@ -160,36 +160,47 @@ const BarraReserva: React.FC<BarraReservaProps> = ({ onBuscarDisponibilidad }) =
     onBuscarDisponibilidad(fechaInicio.toISOString(), fechaFin.toISOString())
   }
 
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .react-datepicker-popper {
+        z-index: 9999 !important;
+      }
+      .react-datepicker-wrapper {
+        position: relative;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
   return (
     <div className="w-full">
       <div className="flex flex-col border rounded-lg p-3 bg-white shadow-md gap-3">
         {/* Contenedor principal con grid para pantallas pequeñas y flex para pantallas grandes */}
         <div className="grid grid-cols-2 gap-x-0 gap-y-3 md:flex md:flex-row md:flex-wrap md:items-center md:gap-3">
-          {/* Fecha de devolución */}
+          {/* Fecha de recogida */}
           <div className="flex items-center gap-1 w-full md:w-auto">
             <CalendarIcon className="h-6 w-6 md:h-10 md:w-10 text-gray-800 shrink-0" />
             <div className="flex flex-col">
               <label className="w-36 text-sm font-bold text-blue-950">Fecha de recogida:</label>
               <DatePicker
-                selected={returnDate}
-                onChange={handleReturnDateChange} 
+                selected={pickupDate}
+                onChange={handlePickupDateChange}
                 dateFormat="dd/MM/yyyy"
                 className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-28"
+                calendarClassName="shadow-lg"
+                popperClassName="z-50"
+                portalId="root-portal"
                 popperPlacement="bottom-start"
-                popperModifiers={[
-                  {
-                    name: "preventOverflow",
-                    options: {
-                      boundary: "viewport",
-                    },
-                  },
-                ]}
-                popperClassName="z-[9999]"
-                minDate={pickupDate || new Date()}
+                minDate={new Date()}
+                wrapperClassName="z-50"
               />
             </div>
           </div>
-
 
           {/* Hora de recogida */}
           <div className="flex items-center gap-1 w-full md:w-auto">
@@ -217,21 +228,15 @@ const BarraReserva: React.FC<BarraReservaProps> = ({ onBuscarDisponibilidad }) =
                 onChange={handleReturnDateChange}
                 dateFormat="dd/MM/yyyy"
                 className="border rounded p-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-black w-28"
+                calendarClassName="shadow-lg"
+                popperClassName="z-40"
+                portalId="root-portal"
                 popperPlacement="bottom-start"
-                popperModifiers={[
-                  {
-                    name: "preventOverflow",
-                    options: {
-                      boundary: "viewport",
-                    },
-                  },
-                ]}
-                popperClassName="z-[9999]"
-                minDate={pickupDate || new Date()} 
+                minDate={pickupDate || new Date()}
+                wrapperClassName="z-40"
               />
             </div>
           </div>
-
 
           {/* Hora de devolución */}
           <div className="flex items-center gap-1 w-full md:w-auto">
